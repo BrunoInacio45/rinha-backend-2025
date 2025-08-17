@@ -1,5 +1,4 @@
-using System.Text;
-using System.Text.Json;
+using Polly.CircuitBreaker;
 using RinhaBackend2025.Domain.Models;
 using RinhaBackend2025.Models;
 using RinhaBackend2025.Models.DTO;
@@ -9,10 +8,12 @@ namespace RinhaBackend2025.Infra.Clients
     public class ProcessorHttpClient<T> where T : class
     {
         private readonly HttpClient _http;
+        private readonly AsyncCircuitBreakerPolicy<HttpResponseMessage>? _policy;
 
-        public ProcessorHttpClient(HttpClient http)
+        public ProcessorHttpClient(HttpClient http, AsyncCircuitBreakerPolicy<HttpResponseMessage>? policy = null)
         {
             _http = http;
+            _policy = policy;
         }
 
         public async Task<bool> ProcessPaymentAsync(Payment payment, CancellationToken cancellationToken = default)
@@ -22,8 +23,18 @@ namespace RinhaBackend2025.Infra.Clients
                 payment.Amount,
                 payment.ProcessorAt);
 
-            var response = await _http.PostAsJsonAsync("payments", paymentRequest, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            if (_policy != null)
+            {
+                var response = await _policy.ExecuteAsync(() =>
+                    _http.PostAsJsonAsync("payments", paymentRequest, cancellationToken)
+                );
+                response.EnsureSuccessStatusCode();
+            }
+            else
+            {
+                var response = await _http.PostAsJsonAsync("payments", paymentRequest, cancellationToken);
+                response.EnsureSuccessStatusCode();
+            }
 
             return true;
         }

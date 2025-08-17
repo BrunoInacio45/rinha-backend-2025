@@ -14,7 +14,6 @@ namespace RinhaBackend2025.Infra.Worker
         private readonly ProcessorFallbackClient _processorFallback;
         private readonly PaymentRepository _repository;
         private readonly IConnectionMultiplexer _redis;
-        private readonly ILogger<PaymentWorker> _logger;
 
         private const int MaxDegreeOfParallelism = 4;
         private const int BatchSize = 5;
@@ -25,15 +24,13 @@ namespace RinhaBackend2025.Infra.Worker
             RedisPaymentQueue queue,
             ProcessorDefaultClient processorDefault,
             ProcessorFallbackClient processorFallback,
-            IConnectionMultiplexer redis,
-            ILogger<PaymentWorker> logger)
+            IConnectionMultiplexer redis)
         {
             _queue = queue;
             _processorDefault = processorDefault;
             _processorFallback = processorFallback;
             _repository = scopeFactory.CreateScope().ServiceProvider.GetRequiredService<PaymentRepository>();
             _redis = redis;
-            _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -85,7 +82,6 @@ namespace RinhaBackend2025.Infra.Worker
                         }
                         catch
                         {
-                            _logger.LogWarning("Processador default falhou para pagamento {Id}", payment.CorrelationId);
                             await TryFallback(payment, fallbackHealth, ct);
                         }
                     }
@@ -95,12 +91,10 @@ namespace RinhaBackend2025.Infra.Worker
                     }
 
                     await _repository.AddAsync(payment, ct);
-                    _logger.LogInformation("Pagamento {Id} processado com sucesso", payment.CorrelationId);
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "Pagamento {Id} falhou em todos processadores, reenviando para fila", payment.CorrelationId);
                 await _queue.PublishAsync(payment); // mantém o pagamento seguro na fila
             }
         }

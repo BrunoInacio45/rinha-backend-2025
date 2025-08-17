@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 using RinhaBackend2025.Domain.Models;
 using RinhaBackend2025.Infra.Clients;
 using RinhaBackend2025.Infra.Database;
@@ -9,6 +10,13 @@ using RinhaBackend2025.Models;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
+var defaultCircuitBreakerPolicy = Policy<HttpResponseMessage>
+    .Handle<HttpRequestException>()
+    .OrResult(r => !r.IsSuccessStatusCode)
+    .CircuitBreakerAsync(
+        handledEventsAllowedBeforeBreaking: 3,
+        durationOfBreak: TimeSpan.FromSeconds(5)
+    );
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -20,14 +28,24 @@ builder.Services.AddHttpClient<ProcessorDefaultClient>(client =>
 {
     client.BaseAddress = new Uri("http://payment-processor-default:8080/");
     // client.BaseAddress = new Uri("http://localhost:8001/");
-    client.Timeout = TimeSpan.FromSeconds(10);
-}); 
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+    MaxConnectionsPerServer = 512
+})
+.AddPolicyHandler(defaultCircuitBreakerPolicy);
 
 builder.Services.AddHttpClient<ProcessorFallbackClient>(client =>
 {
     client.BaseAddress = new Uri("http://payment-processor-fallback:8080/");
     // client.BaseAddress = new Uri("http://localhost:8002/");
     client.Timeout = TimeSpan.FromSeconds(10);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    PooledConnectionLifetime = TimeSpan.FromMinutes(2),
+    MaxConnectionsPerServer = 512
 });
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(
@@ -36,7 +54,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(
 );
 
 builder.Services.AddSingleton<RedisPaymentQueue>();
-builder.Services.AddSingleton<PaymentQueue>();
 builder.Services.AddScoped<PaymentRepository>();
 
 builder.Services.AddHostedService<PaymentWorker>();
@@ -57,7 +74,7 @@ app.MapPost("/payments", async (RedisPaymentQueue queue, PaymentRequest paymentR
 {
     var payment = new Payment(paymentRequest.CorrelationId, paymentRequest.Amount);
     await queue.PublishAsync(payment);
-    
+
     return Results.Ok(payment);
 })
 .WithName("Payments")

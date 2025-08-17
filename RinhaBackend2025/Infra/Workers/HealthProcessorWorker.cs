@@ -8,19 +8,16 @@ namespace RinhaBackend2025.Infra.Worker
         private readonly ProcessorDefaultClient _processorDefaultHttpClient;
         private readonly ProcessorFallbackClient _processorFallbackHttpClient;
         private readonly IConnectionMultiplexer _redis;
-        private readonly ILogger<PaymentWorker> _logger;
         private const int _secToRetry = 10;
 
         public HealthProcessorWorker(
             ProcessorDefaultClient processorDefaultHttpClient,
             ProcessorFallbackClient processorFallbackHttpClient,
-            IConnectionMultiplexer redis,
-            ILogger<PaymentWorker> logger)
+            IConnectionMultiplexer redis)
         {
             _processorDefaultHttpClient = processorDefaultHttpClient;
             _processorFallbackHttpClient = processorFallbackHttpClient;
             _redis = redis;
-            _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,13 +35,11 @@ namespace RinhaBackend2025.Infra.Worker
         {
             try
             {
-                _logger.LogInformation("Checking processor default health at: {time}", DateTimeOffset.Now);
                 var healthy = await _processorDefaultHttpClient.CheckHealthAsync(stoppingToken);
                 await redisDb.StringSetAsync("processor:default:health", healthy);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError($"Failed to check processor default health at: {ex.Message}", DateTimeOffset.Now);
                 await redisDb.StringSetAsync("processor:default:health", false);
             }
         }
@@ -53,7 +48,6 @@ namespace RinhaBackend2025.Infra.Worker
         {
             try
             {
-                _logger.LogInformation("Checking processor fallback health at: {time}", DateTimeOffset.Now);
                 var healthy = await _processorFallbackHttpClient.CheckHealthAsync(stoppingToken);
                 await redisDb.StringSetAsync("processor:fallback:health", healthy);
             }
