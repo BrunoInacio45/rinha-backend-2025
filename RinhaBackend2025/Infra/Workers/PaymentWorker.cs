@@ -15,9 +15,8 @@ namespace RinhaBackend2025.Infra.Worker
         private readonly PaymentRepository _repository;
         private readonly IConnectionMultiplexer _redis;
 
-        private const int MaxDegreeOfParallelism = 4;
-        private const int BatchSize = 5;
-        private const int MaxRetries = 3;
+        private const int MaxDegreeOfParallelism = 8;
+        private const int BatchSize = 16;
 
         public PaymentWorker(
             IServiceScopeFactory scopeFactory,

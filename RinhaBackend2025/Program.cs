@@ -21,9 +21,6 @@ var defaultCircuitBreakerPolicy = Policy<HttpResponseMessage>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<PaymentDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddHttpClient<ProcessorDefaultClient>(client =>
 {
     client.BaseAddress = new Uri("http://payment-processor-default:8080/");

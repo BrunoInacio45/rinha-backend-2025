@@ -8,7 +8,7 @@ namespace RinhaBackend2025.Infra.Worker
         private readonly ProcessorDefaultClient _processorDefaultHttpClient;
         private readonly ProcessorFallbackClient _processorFallbackHttpClient;
         private readonly IConnectionMultiplexer _redis;
-        private const int _secToRetry = 10;
+        private const int _secToRetry = 5;
 
         public HealthProcessorWorker(
             ProcessorDefaultClient processorDefaultHttpClient,
