@@ -33,6 +33,11 @@ O **Rinha Backend 2025** é uma aplicação backend desenvolvida para o desafio 
 - GitHub Actions (para CI/CD)
 
 ---
+## Arquitetura
+
+![Arquitetura](./diagram-rinha-backend-2025.png)
+
+---
 
 ## 🚀 Como Rodar o Projeto
 
