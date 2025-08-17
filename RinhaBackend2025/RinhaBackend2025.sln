@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RinhaBackend2025", "RinhaBackend2025.csproj", "{77305C3E-1AF7-22CD-09D3-9D98F4FAAA06}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{77305C3E-1AF7-22CD-09D3-9D98F4FAAA06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77305C3E-1AF7-22CD-09D3-9D98F4FAAA06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77305C3E-1AF7-22CD-09D3-9D98F4FAAA06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77305C3E-1AF7-22CD-09D3-9D98F4FAAA06}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D765FB0D-1192-4B40-8AAF-5F75C84C5959}
+	EndGlobalSection
+EndGlobal
