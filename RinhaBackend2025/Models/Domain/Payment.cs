@@ -8,7 +8,7 @@ public class Payment
     public string CorrelationId { get; private set; }
     public decimal Amount { get; private set; }
     public int Processor { get; private set; }
-    public DateTime ProcessorAt { get; private set; }
+    public DateTimeOffset ProcessorAt { get; private set; }
 
     [NotMapped]
     public decimal NumberTry { get; private set; } = 0;

@@ -22,9 +22,6 @@ namespace RinhaBackend2025.Infra.Clients
                 payment.Amount,
                 payment.ProcessorAt);
 
-            var json = JsonSerializer.Serialize(paymentRequest);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
             var response = await _http.PostAsJsonAsync("payments", paymentRequest, cancellationToken);
             response.EnsureSuccessStatusCode();
 

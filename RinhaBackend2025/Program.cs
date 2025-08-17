@@ -19,19 +19,23 @@ builder.Services.AddDbContext<PaymentDbContext>(options =>
 builder.Services.AddHttpClient<ProcessorDefaultClient>(client =>
 {
     client.BaseAddress = new Uri("http://payment-processor-default:8080/");
+    // client.BaseAddress = new Uri("http://localhost:8001/");
     client.Timeout = TimeSpan.FromSeconds(10);
 }); 
 
 builder.Services.AddHttpClient<ProcessorFallbackClient>(client =>
 {
     client.BaseAddress = new Uri("http://payment-processor-fallback:8080/");
+    // client.BaseAddress = new Uri("http://localhost:8002/");
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(
+    // ConnectionMultiplexer.Connect("localhost:6379")
     ConnectionMultiplexer.Connect("redis:6379")
 );
 
+builder.Services.AddSingleton<RedisPaymentQueue>();
 builder.Services.AddSingleton<PaymentQueue>();
 builder.Services.AddScoped<PaymentRepository>();
 
@@ -49,7 +53,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 
-app.MapPost("/payments", async (PaymentQueue queue, PaymentRequest paymentRequest) =>
+app.MapPost("/payments", async (RedisPaymentQueue queue, PaymentRequest paymentRequest) =>
 {
     var payment = new Payment(paymentRequest.CorrelationId, paymentRequest.Amount);
     await queue.PublishAsync(payment);
